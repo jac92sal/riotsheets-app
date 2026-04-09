@@ -1,0 +1,48 @@
+name = "riotsheetsappreggie"
+main = "worker/src/index.ts"
+compatibility_date = "2024-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "riotsheets-db"
+database_id = "eeb72ade-f10c-45a7-9bff-060d06d98c7c"
+
+# R2 Storage Buckets
+[[r2_buckets]]
+binding = "AUDIO_UPLOADS"
+bucket_name = "audio-uploads"
+
+[[r2_buckets]]
+binding = "SHEET_MUSIC"
+bucket_name = "sheet-music"
+
+# Monthly usage reset cron (1st of every month at midnight UTC)
+[triggers]
+crons = ["0 0 1 * *"]
+
+# Secrets Store bindings (account-level secrets)
+[[secrets_store_secrets]]
+binding = "STRIPE_SECRET_KEY_STORE"
+store_id = "393ef1d6ad114ec598b1b2abf1e9a2b6"
+secret_name = "STRIPE_SECERT_KEY"
+
+[[secrets_store_secrets]]
+binding = "KLANGIO_API_KEY_STORE"
+store_id = "393ef1d6ad114ec598b1b2abf1e9a2b6"
+secret_name = "KLANGIO_API_KEY"
+
+[[secrets_store_secrets]]
+binding = "ANTHROPIC_API_KEY_STORE"
+store_id = "393ef1d6ad114ec598b1b2abf1e9a2b6"
+secret_name = "default_anthropic_default"
+
+[[secrets_store_secrets]]
+binding = "YOUTUBE_API_KEY_STORE"
+store_id = "393ef1d6ad114ec598b1b2abf1e9a2b6"
+secret_name = "YOUTUBE_API_KEY"
+
+# Worker secrets (set via: wrangler secret put <NAME>)
+# Required:
+#   JWT_SECRET - 256-bit random string for HS256 token signing (already set)

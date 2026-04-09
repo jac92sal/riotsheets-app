@@ -1,0 +1,321 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* RIOT SHEETS - Punk Rock Design System 
+All colors MUST be HSL. Punk aesthetic with dark gradients and neon accents.
+*/
+
+@layer base {
+  :root {
+    /* Punk Rock Color Palette */
+    --background: 0 0% 4%;
+    --background-secondary: 0 0% 6%;
+    --background-tertiary: 0 0% 10%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 6% / 0.2;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 100%;
+
+    /* Punk Pink Primary */
+    --primary: 336 100% 34%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 336 100% 60%;
+
+    /* Neon Green Secondary */
+    --secondary: 158 100% 50%;
+    --secondary-foreground: 0 0% 4%;
+    --secondary-glow: 158 100% 70%;
+
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 53%;
+
+    --accent: 158 100% 50%;
+    --accent-foreground: 0 0% 4%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 336 100% 60%;
+
+    --radius: 0rem;
+
+    
+    /* Punk Gradients */
+    --gradient-primary: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--secondary)));
+    --gradient-secondary: linear-gradient(45deg, hsl(var(--primary)), hsl(336 100% 51%));
+    --gradient-success: linear-gradient(45deg, hsl(var(--secondary)), hsl(158 100% 40%));
+    --gradient-background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--background-secondary)), hsl(var(--background-tertiary)));
+    
+    /* Punk Shadows & Glows */
+    --shadow-punk-glow: 0 0 20px hsl(var(--primary-glow) / 0.5);
+    --shadow-punk-secondary: 0 0 20px hsl(var(--secondary-glow) / 0.5);
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
+    
+    /* Punk Animation Durations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-punk: all 0.3s ease;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: var(--gradient-background);
+    font-family: 'Russo One', sans-serif;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+}
+
+/* Punk Rock Animations */
+@keyframes punkGlow {
+  0%, 100% { box-shadow: var(--shadow-punk-glow); }
+  50% { box-shadow: 0 0 40px hsl(var(--primary-glow) / 0.8); }
+}
+
+@keyframes punkPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+@keyframes punkRecord {
+  0%, 100% { background: hsl(var(--destructive)); }
+  50% { background: hsl(var(--destructive) / 0.7); }
+}
+
+@keyframes punkSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes punkSlideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes punkFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Punk Component Classes */
+@layer components {
+  .punk-logo {
+    font-family: 'Black Ops One', cursive;
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px hsl(var(--primary-glow) / 0.5);
+    animation: punkGlow 4s ease-in-out infinite alternate;
+    transform: perspective(500px) rotateX(15deg);
+  }
+  
+  .punk-tagline {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    color: hsl(var(--muted-foreground));
+    letter-spacing: 0.2em;
+  }
+  
+  .punk-badge {
+    background: var(--gradient-secondary);
+    color: hsl(var(--primary-foreground));
+    padding: 0.5rem 1rem;
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    animation: punkPulse 2s ease-in-out infinite;
+    box-shadow: var(--shadow-punk-glow);
+  }
+  
+  .punk-section-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: hsl(var(--foreground));
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.5);
+  }
+  
+  .punk-button {
+    background: var(--gradient-primary);
+    color: hsl(var(--primary-foreground));
+    border: 2px solid transparent;
+    padding: 1rem 2rem;
+    font-family: 'Russo One', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: var(--transition-punk);
+    box-shadow: var(--shadow-elegant);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .punk-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-punk-glow);
+    background: var(--gradient-secondary);
+  }
+  
+  .punk-button:active {
+    transform: translateY(0);
+  }
+  
+  .punk-button-secondary {
+    background: transparent;
+    border: 2px solid hsl(var(--secondary));
+    color: hsl(var(--secondary));
+    box-shadow: 0 0 10px hsl(var(--secondary) / 0.3);
+  }
+  
+  .punk-button-secondary:hover {
+    background: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    box-shadow: var(--shadow-punk-secondary);
+  }
+  
+  .punk-card {
+    background: hsl(var(--card));
+    border: 2px solid hsl(var(--border));
+    padding: 2rem;
+    transition: var(--transition-punk);
+    position: relative;
+  }
+  
+  .punk-card:hover {
+    border-color: hsl(var(--primary));
+    box-shadow: var(--shadow-punk-glow);
+    transform: translateY(-2px);
+  }
+  
+  .punk-input {
+    background: hsl(var(--input));
+    border: 2px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+    padding: 1rem;
+    font-family: 'Russo One', sans-serif;
+    transition: var(--transition-punk);
+  }
+  
+  .punk-input:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: var(--shadow-punk-glow);
+    outline: none;
+  }
+  
+  .punk-dropzone {
+    border: 3px dashed hsl(var(--border));
+    background: hsl(var(--background-secondary));
+    transition: var(--transition-punk);
+    position: relative;
+  }
+  
+  .punk-dropzone.dragover {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
+    box-shadow: var(--shadow-punk-glow);
+  }
+  
+  .punk-instrument {
+    background: hsl(var(--card));
+    border: 2px solid hsl(var(--border));
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition-punk);
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.75rem;
+  }
+  
+  .punk-instrument:hover {
+    border-color: hsl(var(--primary));
+    transform: scale(1.05);
+    box-shadow: var(--shadow-punk-glow);
+  }
+  
+  .punk-instrument.selected {
+    background: var(--gradient-primary);
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
+    box-shadow: var(--shadow-punk-glow);
+  }
+  
+  .punk-instrument.selected:hover {
+    background: var(--gradient-secondary);
+  }
+  
+  .beta-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+    animation: punkPulse 2s ease-in-out infinite;
+  }
+  
+  .recording-indicator {
+    animation: punkRecord 1s ease-in-out infinite;
+  }
+  
+  .loading-spinner {
+    animation: punkSpin 1s linear infinite;
+  }
+  
+  .slide-in {
+    animation: punkSlideIn 0.5s ease-out;
+  }
+  
+  .fade-in {
+    animation: punkFadeIn 0.3s ease-out;
+  }
+  
+  /* Responsive Background */
+  .responsive-hero-bg {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+  
+  /* Mobile optimization - fixed attachment can cause performance issues */
+  @media (max-width: 768px) {
+    .responsive-hero-bg {
+      background-attachment: scroll;
+      background-size: cover;
+      background-position: center top;
+    }
+  }
+  
+  /* Tablet optimization */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .responsive-hero-bg {
+      background-attachment: scroll;
+      background-size: cover;
+      background-position: center;
+    }
+  }
+}
