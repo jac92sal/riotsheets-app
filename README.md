@@ -1,73 +1,138 @@
-# Welcome to your Lovable project
+# RIOT SHEETS
 
-## Project info
+AI-powered music transcription and guitar learning app. Record a song, and RIOT SHEETS converts it into fretboard maps, chord diagrams, tabs, and sheet music. Practice with anonymous jam sessions where you see sound waves instead of faces — no embarrassment, just shredding.
 
-**URL**: https://lovable.dev/projects/569c32ca-8a3b-4b24-9b06-99227a25bcff
+## Live App
 
-## How can I edit this code?
+- **Web**: https://riotsheets.pages.dev
+- **API**: https://riotsheetsappreggie.jacob-890.workers.dev
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React, TypeScript, Vite, Tailwind CSS, shadcn/ui |
+| Backend | Cloudflare Workers |
+| Database | Cloudflare D1 (SQLite) |
+| Storage | Cloudflare R2 |
+| Secrets | Cloudflare Secrets Store |
+| Music AI | Klangio API (chord recognition, transcription, sheet music) |
+| AI Chat | Anthropic Claude API |
+| Payments | Stripe (subscriptions, checkout, billing portal) |
+| YouTube | Cobalt API (audio extraction) + YouTube Data API (metadata) |
+| Auth | JWT with Web Crypto API (zero npm auth deps) |
+| Android | Capacitor (WebView shell with native mic/haptics access) |
+| Fretboard | @moonwave99/fretboard.js |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/569c32ca-8a3b-4b24-9b06-99227a25bcff) and start prompting.
+## Project Structure
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+riot-sheets/
+├── android/             # Capacitor Android project
+├── worker/              # Cloudflare Worker API
+│   └── src/
+│       ├── api/         # Route handlers (auth, music, storage, analyses)
+│       ├── tools/       # MCP tools (transcribe, analyze, identify)
+│       ├── index.ts     # Entry point + router
+│       └── types.ts     # Env types + secret resolver
+├── src/                 # React frontend
+│   ├── components/      # UI + music components
+│   ├── contexts/        # Auth context
+│   ├── hooks/           # Audio recording, subscriptions, feature gating
+│   ├── lib/             # API client
+│   └── pages/           # Routes
+├── migrations/          # D1 SQL schema
+├── capacitor.config.ts  # Android config
+├── wrangler.toml        # Cloudflare config
+└── vite.config.ts       # Build config
 ```
 
-**Edit a file directly in GitHub**
+## Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Prerequisites
 
-**Use GitHub Codespaces**
+- Node.js 18+
+- npm
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (included as dev dep)
+- Android Studio (for Android builds)
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Local Development
 
-## What technologies are used for this project?
+```sh
+# Clone the repo
+git clone https://github.com/jac92sal/riotsheets-app.git
+cd riotsheets-app
 
-This project is built with:
+# Install dependencies
+npm install
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Start the frontend dev server
+npm run dev
 
-## How can I deploy this project?
+# Start the Worker dev server (separate terminal)
+npm run worker:dev
+```
 
-Simply open [Lovable](https://lovable.dev/projects/569c32ca-8a3b-4b24-9b06-99227a25bcff) and click on Share -> Publish.
+### Environment Variables
 
-## Can I connect a custom domain to my Lovable project?
+Create a `.dev.vars` file in the project root for local Worker development:
 
-Yes, you can!
+```
+JWT_SECRET=your-local-dev-secret
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+Secrets Store bindings (Stripe, Klangio, Anthropic, YouTube) are resolved automatically in production.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Build & Deploy
+
+```sh
+# Build frontend
+npm run build
+
+# Deploy Worker to Cloudflare
+npm run worker:deploy
+
+# Sync and build Android
+npm run cap:build
+npm run cap:open
+```
+
+### Android
+
+The `android/` directory is a Capacitor project. Open it in Android Studio:
+
+1. `npm run cap:build` — builds the web app and syncs to Android
+2. `npm run cap:open` — opens in Android Studio
+3. Run on emulator or device from Android Studio
+
+Microphone, internet, and haptics permissions are pre-configured in `AndroidManifest.xml`.
+
+## Features
+
+- **Live Recording** — Record guitar through your mic, get instant analysis
+- **Chord Recognition** — Detects chords, key, and strumming patterns via Klangio
+- **Sheet Music** — Full transcription to PDF, MIDI, Guitar Pro, and MusicXML
+- **Fretboard Maps** — Interactive fretboard visualization for learning
+- **YouTube Import** — Paste a YouTube URL, extract audio, and analyze
+- **AI Assistant** — Chat with Claude about your music, theory, and practice
+- **Anonymous Jam Sessions** — Play with others, see waveforms not faces
+- **Subscription Tiers** — Free, Punk Starter, Riot Rocker, Punk Legend
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/signup` | POST | Create account |
+| `/api/auth/signin` | POST | Sign in |
+| `/api/auth/me` | GET | Get current user |
+| `/api/identify-song` | POST | Analyze recorded audio |
+| `/api/get-sheet-music` | POST | Generate sheet music |
+| `/api/youtube-to-audio` | POST | Extract audio from YouTube |
+| `/api/chat` | POST | AI music assistant |
+| `/api/analyses` | GET/POST | List/create analyses |
+| `/api/analyses/:id` | GET/PATCH | Get/update analysis |
+| `/api/check-subscription` | GET | Check Stripe subscription |
+| `/api/create-checkout` | POST | Create Stripe checkout |
+| `/api/customer-portal` | POST | Stripe billing portal |
+| `/health` | GET | API health check |
+| `/sse` | GET | MCP server (SSE transport) |
