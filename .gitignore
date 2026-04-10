@@ -20,6 +20,8 @@ android/local.properties
 *.apk
 *.aab
 *.keystore
+keystore.properties
+GOOGLE_PLAY_LISTING.md
 
 # Logs
 *.log
