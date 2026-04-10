@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { LogOut, User, CreditCard, Crown } from 'lucide-react';
+import { LogOut, User, CreditCard, Crown, LayoutDashboard } from 'lucide-react';
 import { useSubscriptionManagement } from "@/hooks/useSubscriptionManagement";
 
 const Navigation = () => {
@@ -50,6 +50,12 @@ const Navigation = () => {
                 {getTierDisplay(subscription.subscription_tier).name}
               </Badge>
             )}
+
+            {/* Dashboard Link */}
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              Dashboard
+            </Button>
 
             {/* Pricing Link */}
             <Button variant="ghost" size="sm" onClick={() => navigate('/pricing')}>

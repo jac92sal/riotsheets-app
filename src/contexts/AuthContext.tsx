@@ -21,7 +21,7 @@ interface AuthContextType {
   session: { access_token: string; user: User } | null;
   subscription: SubscriptionInfo | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
@@ -103,8 +103,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { data, error } = await auth.signUp(email, password);
+  const signUp = async (email: string, password: string, name?: string) => {
+    const { data, error } = await auth.signUp(email, password, name);
     if (!error && data?.user) {
       setUser(data.user);
       setSession({ access_token: data.token, user: data.user });

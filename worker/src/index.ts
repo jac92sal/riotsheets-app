@@ -47,6 +47,13 @@ export default {
           status: 'ok',
           service: 'Riot Sheets API',
           tools: ['transcribe_audio', 'analyze_music', 'identify_song', 'get_tabs', 'get_chord_progression'],
+          secrets: {
+            klangio: !!env.KLANGIO_API_KEY ? 'set' : 'missing',
+            stripe: !!env.STRIPE_SECRET_KEY ? 'set' : 'missing',
+            anthropic: !!env.ANTHROPIC_API_KEY ? 'set' : 'missing',
+            youtube: !!env.YOUTUBE_API_KEY ? 'set' : 'missing',
+            jwt: !!env.JWT_SECRET ? 'set' : 'missing',
+          },
         }), { headers: { 'Content-Type': 'application/json' } }));
       }
 

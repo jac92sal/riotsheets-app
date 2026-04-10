@@ -3,7 +3,7 @@ import type { Env } from '../types';
 import { signJWT, hashPassword, verifyPassword, getUserFromRequest } from './auth';
 
 export async function handleSignup(request: Request, env: Env): Promise<Response> {
-  const { email, password } = await request.json() as { email: string; password: string };
+  const { email, password, name } = await request.json() as { email: string; password: string; name?: string };
 
   if (!email || !password) {
     return json({ error: 'Email and password required' }, 400);
@@ -29,8 +29,8 @@ export async function handleSignup(request: Request, env: Env): Promise<Response
   await env.DB.batch([
     env.DB.prepare('INSERT INTO users (id, email, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')
       .bind(userId, email, passwordHash, now, now),
-    env.DB.prepare('INSERT INTO profiles (id, user_id, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?)')
-      .bind(profileId, userId, email, now, now),
+    env.DB.prepare('INSERT INTO profiles (id, user_id, email, display_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(profileId, userId, email, name || null, now, now),
     env.DB.prepare('INSERT INTO subscribers (id, user_id, email, usage_reset_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
       .bind(subscriberId, userId, email, resetDate, now, now),
   ]);

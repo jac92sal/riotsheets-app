@@ -25,10 +25,39 @@ export async function handleIdentifySong(request: Request, env: Env): Promise<Re
       return generateFallback(audioBlob, userId, env);
     }
 
+    // Klangio requires audio > 5 seconds
+    const estimatedDuration = estimateWavDuration(binaryData);
+    if (estimatedDuration < 5) {
+      return json({
+        status: 'error',
+        error: `Recording too short (${estimatedDuration.toFixed(1)}s). Please record at least 5 seconds of audio for Klangio analysis.`,
+        minimum_seconds: 5,
+        actual_seconds: estimatedDuration,
+      }, 400);
+    }
+
     try {
-      const chordResult = await performChordRecognition(audioBlob, env.KLANGIO_API_KEY);
-      const transcriptionResult = await performTranscription(audioBlob, env.KLANGIO_API_KEY);
-      const combined = combineResults(chordResult, transcriptionResult);
+      // Run chord recognition and transcription in parallel
+      const [chordResult, transcriptionResult] = await Promise.allSettled([
+        performChordRecognition(audioBlob, env.KLANGIO_API_KEY),
+        performTranscription(audioBlob, env.KLANGIO_API_KEY),
+      ]);
+
+      const chords = chordResult.status === 'fulfilled' ? chordResult.value : null;
+      const transcription = transcriptionResult.status === 'fulfilled' ? transcriptionResult.value : null;
+
+      // If both failed, return fallback with error info
+      if (!chords && !transcription) {
+        const errors = [
+          chordResult.status === 'rejected' ? `chords: ${chordResult.reason}` : null,
+          transcriptionResult.status === 'rejected' ? `transcription: ${transcriptionResult.reason}` : null,
+        ].filter(Boolean);
+        console.error('Klangio both failed:', errors.join('; '));
+        const fallback = await generateFallback(audioBlob, userId, env);
+        return fallback;
+      }
+
+      const combined = combineResults(chords, transcription);
 
       if (userId) {
         const analysisId = await saveAnalysis(env, userId, audioBlob.size, combined);
@@ -36,8 +65,8 @@ export async function handleIdentifySong(request: Request, env: Env): Promise<Re
       }
 
       return json(combined);
-    } catch (klangioError) {
-      console.error('Klangio failed:', klangioError);
+    } catch (klangioError: any) {
+      console.error('Klangio failed:', klangioError?.message || klangioError);
       return generateFallback(audioBlob, userId, env);
     }
   } catch (error: any) {
@@ -341,18 +370,24 @@ async function performChordRecognition(audioBlob: Blob, apiKey: string): Promise
   const res = await fetch('https://api.klang.io/chord-recognition-extended?vocabulary=major-minor', {
     method: 'POST', headers: { 'kl-api-key': apiKey }, body: formData,
   });
-  if (!res.ok) throw new Error(`Chord recognition failed: ${res.status}`);
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    throw new Error(`Chord recognition HTTP ${res.status}: ${errBody}`);
+  }
   const job = await res.json() as { job_id: string };
+  console.log('Chord recognition job created:', job.job_id);
   const completed = await pollJob(job.job_id, apiKey, 30, 3000);
-  if (!completed) return null;
+  if (!completed) throw new Error(`Chord recognition job ${job.job_id} timed out or failed`);
 
   // Fetch the actual chord recognition results
   const resultRes = await fetch(`https://api.klang.io/job/${job.job_id}/json`, {
     headers: { 'kl-api-key': apiKey },
   });
-  if (!resultRes.ok) return null;
+  if (!resultRes.ok) throw new Error(`Chord results fetch failed: ${resultRes.status}`);
   // Extended format: { key: "A minor", strums: [[ts, dir], ...], chords: [[start, end, name], ...] }
-  return await resultRes.json();
+  const data = await resultRes.json();
+  console.log('Chord recognition result:', JSON.stringify(data).slice(0, 200));
+  return data;
 }
 
 async function performTranscription(audioBlob: Blob, apiKey: string): Promise<any> {
@@ -365,10 +400,14 @@ async function performTranscription(audioBlob: Blob, apiKey: string): Promise<an
   const res = await fetch('https://api.klang.io/transcription?model=universal&title=RIOT+SHEETS+Recording', {
     method: 'POST', headers: { 'kl-api-key': apiKey }, body: formData,
   });
-  if (!res.ok) throw new Error(`Transcription failed: ${res.status}`);
+  if (!res.ok) {
+    const errBody = await res.text().catch(() => '');
+    throw new Error(`Transcription HTTP ${res.status}: ${errBody}`);
+  }
   const job = await res.json() as { job_id: string };
+  console.log('Transcription job created:', job.job_id);
   const completed = await pollJob(job.job_id, apiKey, 45, 3000);
-  if (!completed) return null;
+  if (!completed) throw new Error(`Transcription job ${job.job_id} timed out or failed`);
 
   // Build download URLs for each available format
   const baseUrl = `https://api.klang.io/job/${job.job_id}`;
@@ -388,15 +427,27 @@ async function pollJob(jobId: string, apiKey: string, maxAttempts: number, delay
   for (let i = 0; i < maxAttempts; i++) {
     try {
       const res = await fetch(`https://api.klang.io/job/${jobId}/status`, { headers: { 'kl-api-key': apiKey } });
-      if (!res.ok) { await new Promise(r => setTimeout(r, delayMs)); continue; }
+      if (!res.ok) {
+        console.log(`Poll ${jobId} attempt ${i}: HTTP ${res.status}`);
+        if (i < maxAttempts - 1) await sleep(delayMs);
+        continue;
+      }
       const data = await res.json() as { status: string };
+      console.log(`Poll ${jobId} attempt ${i}: ${data.status}`);
       if (data.status === 'COMPLETED') return true;
       if (data.status === 'FAILED') return false;
       // IN_QUEUE or IN_PROGRESS — keep polling
-      await new Promise(r => setTimeout(r, delayMs));
-    } catch { await new Promise(r => setTimeout(r, delayMs)); }
+      if (i < maxAttempts - 1) await sleep(delayMs);
+    } catch (e) {
+      console.log(`Poll ${jobId} attempt ${i}: error ${e}`);
+      if (i < maxAttempts - 1) await sleep(delayMs);
+    }
   }
   return false;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function combineResults(chordResult: any, transcriptionResult: any): any {
@@ -539,6 +590,23 @@ function parseDuration(iso: string): number {
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!m) return 0;
   return (parseInt(m[1] || '0') * 3600) + (parseInt(m[2] || '0') * 60) + parseInt(m[3] || '0');
+}
+
+function estimateWavDuration(data: Uint8Array): number {
+  // Try to parse WAV header for exact duration
+  if (data.length >= 44) {
+    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    const riff = String.fromCharCode(data[0], data[1], data[2], data[3]);
+    if (riff === 'RIFF') {
+      const sampleRate = view.getUint32(24, true);
+      const byteRate = view.getUint32(28, true);
+      const dataSize = view.getUint32(40, true);
+      if (byteRate > 0) return dataSize / byteRate;
+      if (sampleRate > 0) return dataSize / (sampleRate * 2); // assume 16-bit mono
+    }
+  }
+  // Fallback: estimate from blob size (rough: ~88KB/sec for 44.1kHz mono 16-bit)
+  return Math.max(1, data.length / 88000);
 }
 
 function json(data: any, status = 200): Response {

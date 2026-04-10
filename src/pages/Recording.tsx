@@ -6,7 +6,7 @@ import { AudioAnalysisModal } from '@/components/AudioAnalysisModal';
 import { useAudioProcessing } from '@/hooks/useAudioProcessing';
 import { useAuth } from '@/contexts/AuthContext';
 import FretboardViewer from '@/components/FretboardViewer';
-import { Badge } from '@/components/ui/badge';
+import Navigation from '@/components/Navigation';
 import punkHeroBg from '@/assets/punk-hero-bg.jpg';
 
 const Recording = () => {
@@ -66,7 +66,7 @@ const Recording = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-screen flex flex-col"
       style={{
         backgroundImage: `linear-gradient(rgba(10, 10, 10, 0.7), rgba(26, 26, 26, 0.8)), url(${punkHeroBg})`,
         backgroundSize: 'cover',
@@ -74,6 +74,8 @@ const Recording = () => {
         backgroundAttachment: 'fixed'
       }}
     >
+      <Navigation />
+      <div className="flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         {/* Processing State */}
         {isProcessing && (
@@ -103,38 +105,73 @@ const Recording = () => {
           </div>
         )}
 
-        {/* Inline Results Display (for anonymous users or when results are in state) */}
+        {/* Inline Results Display */}
         {results && !isProcessing && (
           <div className="space-y-6 animate-fade-in">
-            <div className="text-center space-y-2">
-              <h1 className="text-3xl font-bold">{song?.title || 'Your Recording'}</h1>
-              <p className="text-muted-foreground">{song?.artist || ''}</p>
+            {/* Song title & metadata */}
+            <div className="text-center space-y-3">
+              <h1 className="text-4xl font-black tracking-tight text-white drop-shadow-lg"
+                  style={{ fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif", textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+                {song?.title || 'Your Recording'}
+              </h1>
+              <p className="text-lg font-medium text-gray-300">{song?.artist || ''}</p>
               <div className="flex justify-center gap-2 flex-wrap">
-                {analysis?.key && <Badge variant="secondary">Key: {analysis.key}</Badge>}
-                {analysis?.tempo && <Badge variant="secondary">{analysis.tempo} BPM</Badge>}
-                {analysis?.difficulty && <Badge variant="outline">{analysis.difficulty}</Badge>}
-                {analysis?.real_data && <Badge className="bg-green-600">AI Transcription</Badge>}
-                {!analysis?.real_data && <Badge variant="outline">Basic Analysis</Badge>}
+                {analysis?.key && (
+                  <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-500 text-white shadow-md">
+                    Key: {analysis.key}
+                  </span>
+                )}
+                {analysis?.tempo && (
+                  <span className="px-3 py-1 rounded-full text-sm font-bold bg-green-500 text-white shadow-md">
+                    {analysis.tempo} BPM
+                  </span>
+                )}
+                {analysis?.difficulty && (
+                  <span className="px-3 py-1 rounded-full text-sm font-bold bg-gray-700 text-gray-100 border border-gray-500 shadow-md">
+                    {analysis.difficulty}
+                  </span>
+                )}
+                {analysis?.real_data && (
+                  <span className="px-3 py-1 rounded-full text-sm font-bold bg-emerald-600 text-white shadow-md">
+                    AI Transcription
+                  </span>
+                )}
               </div>
             </div>
 
             {/* Fretboard with detected chords */}
             {chords.length > 0 && (
-              <FretboardViewer
-                chords={chords}
-                currentChord={chords[0] || ''}
-                chordTimeline={chordTimeline}
-                currentTime={0}
-                onChordClick={() => {}}
-                instrument="guitar"
-                size="md"
-              />
+              <div className="bg-gray-900/90 backdrop-blur-sm border border-gray-700 rounded-xl p-4 shadow-2xl">
+                <FretboardViewer
+                  chords={chords}
+                  currentChord={chords[0] || ''}
+                  chordTimeline={chordTimeline}
+                  currentTime={0}
+                  onChordClick={() => {}}
+                  instrument="guitar"
+                  size="md"
+                />
+              </div>
+            )}
+
+            {/* Chord progression */}
+            {chords.length > 0 && (
+              <div className="bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-xl p-4">
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Chord Progression</h3>
+                <div className="flex gap-2 flex-wrap">
+                  {chords.map((chord: string, i: number) => (
+                    <span key={i} className="px-4 py-2 rounded-lg text-base font-bold bg-pink-600 text-white shadow-lg">
+                      {chord}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Analysis tips */}
             {analysis?.tips && (
-              <div className="bg-card border rounded-lg p-4 text-center text-sm text-muted-foreground">
-                {analysis.tips}
+              <div className="bg-gray-900/80 backdrop-blur-sm border border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-sm text-gray-300 font-medium">{analysis.tips}</p>
               </div>
             )}
 
@@ -143,19 +180,19 @@ const Recording = () => {
               <div className="grid grid-cols-3 gap-2">
                 {transcription.downloads?.pdf && (
                   <a href={transcription.downloads.pdf} target="_blank" rel="noopener noreferrer"
-                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-center text-sm font-medium hover:bg-secondary/90">
+                    className="px-4 py-3 bg-gray-800 text-white rounded-xl text-center text-sm font-bold hover:bg-gray-700 transition-colors border border-gray-600 shadow-md">
                     PDF Sheet Music
                   </a>
                 )}
                 {transcription.downloads?.midi && (
                   <a href={transcription.downloads.midi} target="_blank" rel="noopener noreferrer"
-                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-center text-sm font-medium hover:bg-secondary/90">
+                    className="px-4 py-3 bg-gray-800 text-white rounded-xl text-center text-sm font-bold hover:bg-gray-700 transition-colors border border-gray-600 shadow-md">
                     MIDI File
                   </a>
                 )}
                 {transcription.downloads?.gp5 && (
                   <a href={transcription.downloads.gp5} target="_blank" rel="noopener noreferrer"
-                    className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg text-center text-sm font-medium hover:bg-secondary/90">
+                    className="px-4 py-3 bg-gray-800 text-white rounded-xl text-center text-sm font-bold hover:bg-gray-700 transition-colors border border-gray-600 shadow-md">
                     Guitar Pro
                   </a>
                 )}
@@ -167,12 +204,11 @@ const Recording = () => {
               <button
                 onClick={() => {
                   startNewRecording();
-                  // Clear results by reloading — results state is in useAudioProcessing
                   window.location.reload();
                 }}
-                className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-bold hover:bg-primary/90 transition-colors"
+                className="px-8 py-4 bg-pink-600 text-white rounded-xl font-black text-lg uppercase tracking-wide hover:bg-pink-500 transition-colors shadow-lg"
               >
-                RECORD AGAIN
+                Record Again
               </button>
             </div>
           </div>
@@ -251,6 +287,7 @@ const Recording = () => {
         onConfirm={handleAnalysisConfirm}
         audioSource={audioSource}
       />
+      </div>
     </div>
   );
 };

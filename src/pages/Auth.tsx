@@ -12,6 +12,7 @@ import FooterNavigation from '@/components/FooterNavigation';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -59,7 +60,7 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(email, password, name);
         if (error) {
           toast({
             title: 'Sign up failed',
@@ -181,6 +182,18 @@ const Auth = () => {
 
                 <TabsContent value="signup" className="space-y-4 mt-6">
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">Full Name</Label>
+                      <Input
+                        id="signup-name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Your name"
+                        required
+                      />
+                    </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email</Label>
                       <Input

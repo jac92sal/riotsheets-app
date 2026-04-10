@@ -50,10 +50,10 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 export const auth = {
-  signUp: async (email: string, password: string) => {
+  signUp: async (email: string, password: string, name?: string) => {
     const { data, error } = await request('/api/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, name }),
     });
     if (data?.token) setToken(data.token);
     return { data, error };
